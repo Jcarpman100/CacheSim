@@ -8,6 +8,8 @@
 #include <fstream>
 #include <string>
 #include<bits/stdc++.h> 
+#include <configure.h>
+#include <simulate.h>
 using namespace std;
 
 
