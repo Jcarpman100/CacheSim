@@ -9,24 +9,74 @@
 #include <fstream>
 #include <string>
 #include<bits/stdc++.h> 
+#include<cmath>
+
+#ifndef CACHE_H
+#define CACHE_H
+
 
 using namespace std;
 
 class cache{
     private:
+		int cache_size;
+		int block_size;
+		int associativity;
+		int replacement;
+		int write_hit;
+		int write_miss;
+		string* ram;
+		int tagBits;
+		int setBits;
+		int offsetBits;
+		int hits = 0; 
+		int misses = 0;
+		string** cach;
 
     public:
+		
+		cache() {
+			cache_size = 0;
+			block_size = 0;
+			associativity = 0;
+			replacement = 0;
+			write_hit = 0;
+			write_miss = 0;
+			ram = new string();
+		}
+		
+		cache(string* memory, int cacheSize, int blockSize, int associative, int replace, int hit, int miss) {
+			ram = memory;
+			cache_size = cacheSize;
+			block_size = blockSize;
+			associativity = associative;
+			replacement = replace;
+			write_hit = hit;
+			write_miss = miss;
+			offsetBits = (int)ceil(log2(block_size));
+			setBits = (int)ceil(log2(cache_size/(block_size*associativity)));
+			tagBits = (8) - (setBits + offsetBits);
+			cach = new string*[(int)pow(2,setBits)];
+			for (int i = 0; i < (int)pow(2,setBits); i++){
+				cach[i] = new string[associativity * (2 + block_size)];
+			}
+		}
+		
         void read(int numaddress){
-            bitset<13> b(numaddress);
+            bitset<8> b(numaddress);
             string bitstring = b.to_string();
             cout<<bitstring<<endl;
             
-            bitset<8>tag(bitstring.substr(0,8));
-            bitset<3>index(bitstring.substr(8,10));
-            bitset<2>set(bitstring.substr(11,12));
-
-            cout<<"set: "<<dec<<set.to_ulong()<<endl;
-            cout<<"tag: "<<hex<<tag.to_ulong()<<endl;
+            string tag(bitstring.substr(0, tagBits));
+			if (offsetBits > 0)
+				string index(bitstring.substr(tagBits,tagBits + offsetBits));
+			
+			if (setBits > 0) {
+				string set(bitstring.substr(tagBits + offsetBits,tagBits + offsetBits + setBits));
+				cout<<"set: "<<dec<<stoul(set, nullptr, 2)<<endl;
+			}
+			
+            cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
             
             //Needs finishing: should return cache hit, eviction line, ram address, data
             //what r the private members/memory structure
@@ -43,3 +93,5 @@ class cache{
         }
 
 };
+
+#endif

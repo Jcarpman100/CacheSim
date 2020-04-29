@@ -8,8 +8,8 @@
 #include <fstream>
 #include <string>
 #include<bits/stdc++.h> 
-#include <configure.h>
-#include <simulate.h>
+#include "configure.h"
+#include "cache.h"
 using namespace std;
 
 
@@ -59,8 +59,8 @@ int main(int argc, const char * argv[]) {
     string ram[256];
 	int end = readFromFile(argv[1], ram);
 	cout << "init-ram 0x00 0x" << hex << end << endl << "ram successfully initialized!" << endl;
-	//configure config = new configure();
-	//simulate cache = config.getCache();
+	configure config = configure(ram);
+	cache cache = config.getCache();
 	string choice;
 	string address;
 	string data;
@@ -72,17 +72,12 @@ int main(int argc, const char * argv[]) {
 		if (choice.find("cache-read") != string::npos){
 			cin >> address;
 			numaddress = stoi(address, 0, 16);
-			std::stringstream stream;
-			stream << numaddress;
-			stream >> hex >> numaddress;
-			//cache.read(numaddress);
+			cout << numaddress << endl;
+			cache.read(numaddress);
 		} else if (choice.find("cache-write") != string::npos){
 			cin >> address;
 			cin >> data;
 			numaddress = stoi(address, 0, 16);
-			std::stringstream stream;
-			stream << numaddress;
-			stream >> hex >> numaddress;
 			//cache.write(numaddress, data);
 		} else if (choice.find("cache-flush") != string::npos){
 			//cache.flush();
