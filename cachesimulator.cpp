@@ -15,11 +15,15 @@ using namespace std;
 
 int readFromFile(const char* filename, string* memory){
 	ifstream ifs;
+	
+	//atempt to open the file, if that doesn't work, print and stop the program
 	ifs.open(filename);
 	if (!ifs) {
 		cout << "Unable to open file " << filename << endl;
 		exit(1);   // call system to stop
 	}
+	
+	//parse through memory, making sure not to go over 256 values
 	int i = 0;
 	string line;
 	while(getline(ifs, line) && i < 256){
@@ -28,10 +32,13 @@ int readFromFile(const char* filename, string* memory){
 		i++;
 	}
 	int end = i;
+	// if there are less than 256 values, remember the end and initialize the rest of the list with "00"
 	while(i < 256){
 		memory[i] = "00";
 		i++;
 	}
+	
+	//close and return where the values ended
 	ifs.close();
 	return end - 1;
 }
@@ -55,19 +62,31 @@ void memDump(string* memory, int size){
 }
 
 int main(int argc, const char * argv[]) {
+	
 	cout <<  "*** Welcome to the cache simulator *** \ninitialize the RAM: " << endl;
+	
+	//declare and fill RAM, as well as remembering how many values there actually is. Then print success
     string ram[256];
 	int end = readFromFile(argv[1], ram);
 	cout << "init-ram 0x00 0x" << hex << end << endl << "ram successfully initialized!" << endl;
+	
+	//get user input of the cache, and construct it
 	configure config = configure(ram);
 	cache cache = config.getCache();
+	
+	//initialize temporary variables
 	string choice;
 	string address;
 	string data;
 	int numaddress = 0;
+	
+	//loop for user input, exits when the user gives quit.
 	while(choice != "quit"){
+		//print menu then take input of choice
 		cout << ("*** Cache simulator menu *** \ntype one command:\n1. cache-read\n2. cache-write\n3. cache-flush\n4. cache-view\n5. memory-view\n6. cache-dump\n7. memory-dump\n8. quit\n****************************\n");
 		cin >> choice;
+		
+		//lowercase the entire input for simplicity's sake
 		transform(choice.begin(), choice.end(), choice.begin(), ::tolower); 
 		if (choice.find("cache-read") != string::npos){
 			cin >> address;
