@@ -31,6 +31,8 @@ class cache{
 		int offsetBits;
 		int hits = 0; 
 		int misses = 0;
+		int temp_set;
+		int temp_tag;
 		string** cach;
 
     public:
@@ -42,6 +44,8 @@ class cache{
 			replacement = 0;
 			write_hit = 0;
 			write_miss = 0;
+			temp_set = 0;
+			temp_tag = 0;
 			ram = new string();
 		}
 		
@@ -56,6 +60,8 @@ class cache{
 			offsetBits = (int)ceil(log2(block_size));
 			setBits = (int)ceil(log2(cache_size/(block_size*associativity)));
 			tagBits = (8) - (setBits + offsetBits);
+			temp_set = 0;
+			temp_tag = 0;
 			cach = new string*[(int)pow(2,setBits)];
 			for (int i = 0; i < (int)pow(2,setBits); i++){
 				cach[i] = new string[associativity * (2 + block_size)];
@@ -66,7 +72,7 @@ class cache{
             bitset<8> b(numaddress);
             string bitstring = b.to_string();
             cout<<bitstring<<endl;
-            
+                
             string tag(bitstring.substr(0, tagBits));
 			if (offsetBits > 0)
 				string index(bitstring.substr(tagBits,tagBits + offsetBits));
@@ -82,7 +88,8 @@ class cache{
             //what r the private members/memory structure
         }
 
-        void write(){
+        void write(int data, int address){
+			this->read(address);
             
         }
         void flush(){
