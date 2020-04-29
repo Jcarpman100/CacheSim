@@ -37,7 +37,8 @@ class cache{
 
     public:
 		
-		cache() {
+		//Default Constructor, made so that the compiler wouldn't yell at me, should not be used in reality.
+		cache() { 
 			cache_size = 0;
 			block_size = 0;
 			associativity = 0;
@@ -49,14 +50,20 @@ class cache{
 			ram = new string();
 		}
 		
+		//parameterized constructor, should take in the user specified parameters from the configure file, 
+		//as well as the RAM from the main driver file
 		cache(string* memory, int cacheSize, int blockSize, int associative, int replace, int hit, int miss) {
-			ram = memory;
-			cache_size = cacheSize;
+			ram = memory; //shallow copy the RAM
+			
+			//set member variables
+			cache_size = cacheSize; 
 			block_size = blockSize;
 			associativity = associative;
 			replacement = replace;
 			write_hit = hit;
 			write_miss = miss;
+			
+			//set number of bits each segment takes up
 			offsetBits = (int)ceil(log2(block_size));
 			setBits = (int)ceil(log2(cache_size/(block_size*associativity)));
 			tagBits = (8) - (setBits + offsetBits);
@@ -64,11 +71,13 @@ class cache{
 			temp_tag = 0;
 			cach = new string*[(int)pow(2,setBits)];
 			for (int i = 0; i < (int)pow(2,setBits); i++){
-				cach[i] = new string[associativity * (2 + block_size)];
+				cach[i] = new string[associativity * (2 + block_size)]; //initialize the other dimension, each block requires a tag, valid bit, and data 
 			}
 		}
 		
         void read(int numaddress){
+		
+			//turn the address to a bitstring
             bitset<8> b(numaddress);
             string bitstring = b.to_string();
             cout<<bitstring<<endl;
