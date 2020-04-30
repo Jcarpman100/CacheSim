@@ -18,10 +18,9 @@ void test(){
     int numaddress;
     string address;
     cin >> address;
-    numaddress = stoi(address, 0, 16);
     stringstream stream;
-	stream << numaddress;
-	stream >> hex >> numaddress;
+	stream <<hex<<address;
+	stream >> numaddress;
     
     cache c = cache();
     c.read(numaddress);

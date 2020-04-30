@@ -31,8 +31,7 @@ class cache{
 		int offsetBits;
 		int hits = 0; 
 		int misses = 0;
-		int temp_set;
-		int temp_tag;
+		string temp_set, temp_tag;
 		string** cach;
 
     public:
@@ -45,8 +44,6 @@ class cache{
 			replacement = 0;
 			write_hit = 0;
 			write_miss = 0;
-			temp_set = 0;
-			temp_tag = 0;
 			ram = new string();
 		}
 		
@@ -67,8 +64,6 @@ class cache{
 			offsetBits = (int)ceil(log2(block_size));
 			setBits = (int)ceil(log2(cache_size/(block_size*associativity)));
 			tagBits = (8) - (setBits + offsetBits);
-			temp_set = 0;
-			temp_tag = 0;
 			cach = new string*[(int)pow(2,setBits)];
 			for (int i = 0; i < (int)pow(2,setBits); i++){
 				cach[i] = new string[associativity * (2 + block_size)]; //initialize the other dimension, each block requires a tag, valid bit, and data 
@@ -89,6 +84,7 @@ class cache{
 			if (setBits > 0) {
 				string set(bitstring.substr(tagBits + offsetBits,tagBits + offsetBits + setBits));
 				cout<<"set: "<<dec<<stoul(set, nullptr, 2)<<endl;
+				
 			}
 			
             cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
@@ -99,7 +95,32 @@ class cache{
 
         void write(int data, int address){
 			this->read(address);
-            
+			bool hit = false;
+			int hitrow, hitcol;
+            cout<<"set: "<<temp_set<<endl;
+			cout<<"tag: "<<temp_tag<<endl;
+			for(int row = 0; row<(int)pow(2,setBits);row++){
+				for(int col = 0; col < associativity * (2 + block_size); col+=2+block_size){
+					if(temp_tag == cach[row][col] && cach[row][col+1] == 1){
+						hit = true;
+						hitrow = row;
+						hitcol = col;
+						break;
+					}
+					hit = false;
+				}
+				if(hit==true)break;
+			}
+			if(hit){
+				cout<<"write_hit:yes"<<endl;
+				cout<<"eviction_line:" + cach[hitrow][hitcol+2]<<endl;
+			}else{
+				cout<<"write_hit:no"<<endl;
+				cout<<"eviction_line:0"<<endl;
+			}
+			cout<<"ram_address:"+address<<endl;
+			cout<<"data:"+data<<endl;
+			
         }
         void flush(){
 
