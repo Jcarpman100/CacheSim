@@ -1,3 +1,9 @@
+// File: configure.h
+// Author(s): Joseph Carpman, Aditya Pethe
+// Date: 04/22/2020
+// Section: 510
+// E-mail: jcarpman100@tamu.edu, apeth100@tamu.edu
+
 //configure file, takes user options and returns the created cache simulator object
 //kinda like an advanced constructor.
 

@@ -1,4 +1,4 @@
-// File: cachesimulator.cpp
+// File: cache.h
 // Author(s): Joseph Carpman, Aditya Pethe
 // Date: 04/22/2020
 // Section: 510
@@ -51,6 +51,15 @@
 			ram = new string();
 		}
 		
+		/*~cache() {
+			cout << "destructor Called" << endl;
+			for (int i = 0; i < rows; i++){
+			delete [] cach[i];
+			}
+			//delete [] cach;
+			//delete [] ram;
+		}*/
+		
 		//parameterized constructor, should take in the user specified parameters from the configure file, 
 		//as well as the RAM from the main driver file
 		cache(string* memory, int cacheSize, int blockSize, int associative, int replace, int hit, int miss) {
@@ -88,6 +97,14 @@
 		
         void read(int numaddress){
 			
+			if (numaddress >= 256){
+				cout << "Address is too large. \n";
+				return;
+				} else if (numaddress < 0){
+				cout << "Address is too small, how did you manage that? \n";
+				return;
+			}
+			
 			//turn the address to a bitstring
             bitset<8> b(numaddress);
             string bitstring = b.to_string();
@@ -101,24 +118,32 @@
 				stringstream tt;
 				tt<<dec<<stoul(index,nullptr,2);
 				tt>>tempIndex;
+				} else {
+				tempIndex = "0";
 			}
 			
 			
 			if (setBits > 0) {
 				string set = (bitstring.substr(tagBits, setBits));
-				cout<<"set: "<<hex<<stoul(set, nullptr, 2)<<endl;
+				cout<<"set:"<<hex<<stoul(set, nullptr, 2)<<endl;
 				stringstream ss;
 				ss<<hex<<stoul(set,nullptr,2);
 				ss>>temp_set;
 				} else {
-				cout<<"set: 0" << endl;
+				temp_set = "0";
+				cout<<"set:0" << endl;
 			}
 			
-            cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
-            stringstream tt;
-			tt<<hex<<stoul(tag,nullptr,2);
-			tt>>temp_tag;
 			
+			if (tagBits > 0) {
+				cout<<"tag:"<<hex<<stoul(tag, nullptr, 2)<<endl;
+				stringstream tt;
+				tt<<hex<<stoul(tag,nullptr,2);
+				tt>>temp_tag;
+				} else {
+				temp_tag = "0";
+				cout<<"tag:0"<<endl;
+			}
 			
 			int row;
 			if (setBits > 0) {
@@ -130,7 +155,7 @@
 			int hitrow, hitcol;
 			bool hit = false;
 			for(int col = flagBits; col < rowSize; col+=flagBits+1+block_size){
-				if(temp_tag == cach[row][col] && cach[row][col-flagBits] == "1"){
+				if((temp_tag == cach[row][col] || setBits == 8) && cach[row][col-flagBits] == "1"){
 					hit = true;
 					hitrow = row;
 					hitcol = col;
@@ -156,7 +181,6 @@
 				}else{	
 				cout<<"cache_hit:no"<<endl;
 				int evicted = evictionLine(row);
-				cout<<"testing" << endl;
 				if(cach[row][evicted*(flagBits+1+block_size) + 1] == "1"){
 					reWriteRam(row, evicted);
 				}
@@ -176,6 +200,17 @@
 		// git add . commit push pull
         void write(string data, int address){
 			
+			if (data.length() > 2){
+				cout << "invalid data. \n";
+				return;
+				} else if (address >= 256){
+				cout << "Address is too large. \n";
+				return;
+				} else if (address < 0){
+				cout << "Address is too small, how did you manage that? \n";
+				return;
+			}
+			
             //cout<<"set: "<<temp_set<<endl;
 			//turn the address to a bitstring
             bitset<8> b(address);
@@ -190,23 +225,32 @@
 				stringstream tt;
 				tt<<dec<<stoul(index,nullptr,2);
 				tt>>tempIndex;
+				} else {
+				tempIndex = "0";
 			}
 			
 			
 			if (setBits > 0) {
 				string set = (bitstring.substr(tagBits, setBits));
-				cout<<"set: "<<hex<<stoul(set, nullptr, 2)<<endl;
+				cout<<"set:"<<hex<<stoul(set, nullptr, 2)<<endl;
 				stringstream ss;
-				ss<<hex<<stoul(set,nullptr,2);
-				ss>>temp_set;
-				} else {
-				cout<<"set: 0" << endl;
+			ss<<hex<<stoul(set,nullptr,2);
+			ss>>temp_set;
+			} else {
+			temp_set = "0";
+			cout<<"set:0" << endl;
 			}
 			
-            cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
-            stringstream tt;
-			tt<<hex<<stoul(tag,nullptr,2);
-			tt>>temp_tag;
+			
+			if (tagBits > 0) {
+				cout<<"tag:"<<hex<<stoul(tag, nullptr, 2)<<endl;
+				stringstream tt;
+				tt<<hex<<stoul(tag,nullptr,2);
+				tt>>temp_tag;
+				} else {
+				temp_tag = "0";
+				cout<<"tag:0"<<endl;
+			}
 			
 			
             //Needs finishing: should return cache hit, eviction line, ram address, data
@@ -330,15 +374,15 @@
 							cout << cach[row][col+i] << " ";
 						}
 						cout << endl;
-						}
 					}
 				}
-				cout << endl;
 			}
-			
-			void dump(){
-				ofstream ofs("cache.txt", ios::trunc);
-				if (replacement == 1){
+			cout << endl;
+		}
+		
+		void dump(){
+			ofstream ofs("cache.txt", ios::trunc);
+			if (replacement == 1){
 				for (int row = 0; row < rows; row++){
 					for (int col = 0; col < rowSize; col+=(3+block_size)){
 						for (int i = 3; i < (3+block_size); i++) {
@@ -484,7 +528,6 @@
 							return 0;
 							
 							} else if (cach[set][1*lineSize + 2] == "4"){
-							cout << "1" << endl;
 							cach[set][(1*lineSize) + 2] = "1";
 							if (stoi(cach[set][2]) > 0)
 							cach[set][2] = to_string(stoi(cach[set][2]) + 1);
@@ -495,7 +538,6 @@
 							return 1;
 							
 							} else if (cach[set][2*lineSize + 2] == "4"){
-							cout << "2" << endl;
 							cach[set][(2*lineSize) + 2] = "1";
 							if (stoi(cach[set][lineSize + 2]) > 0)
 							cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
@@ -506,7 +548,6 @@
 							return 2;
 							
 							} else if (cach[set][3*lineSize + 2] == "4"){
-							cout << "3" << endl;
 							cach[set][(3*lineSize) + 2] = "1";
 							if (stoi(cach[set][lineSize + 2]) > 0)
 							cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
