@@ -64,9 +64,17 @@ class cache{
 			offsetBits = (int)ceil(log2(block_size));
 			setBits = (int)ceil(log2(cache_size/(block_size*associativity)));
 			tagBits = (8) - (setBits + offsetBits);
+			
+			//initialize the cache depending on settings
 			cach = new string*[(int)pow(2,setBits)];
-			for (int i = 0; i < (int)pow(2,setBits); i++){
-				cach[i] = new string[associativity * (2 + block_size)]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+			if(replacement == 2) {
+				for (int i = 0; i < (int)pow(2,setBits); i++){
+					cach[i] = new string[associativity * (4 + block_size)]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+				}
+			} else {
+				for (int i = 0; i < (int)pow(2,setBits); i++){
+					cach[i] = new string[associativity * (3 + block_size)]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+				}
 			}
 		}
 		
@@ -106,7 +114,7 @@ class cache{
 			cout<<"tag: "<<temp_tag<<endl;
 			for(int row = 0; row<(int)pow(2,setBits);row++){
 				for(int col = 0; col < associativity * (2 + block_size); col+=2+block_size){
-					if(temp_tag == cach[row][col] && cach[row][col+1] == 1){
+					if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
 						hit = true;
 						hitrow = row;
 						hitcol = col;
@@ -133,6 +141,25 @@ class cache{
         void view(){
 
         }
+		
+		void memView(int size){
+			cout << "memory_size:" << dec << size << "\nmemory_content:\nAddress:Data" << endl;
+			for (int i = 0; i < size; i += 8){
+			cout << "0x" << setfill('0') << setw(2) << hex << i << ":";
+			string data = "";
+			for (int j = 0; j < 8; j++){
+				data = data + ram[i+j] + " ";
+			}
+			cout << data << endl;
+	}
+		}
+	
+		void memDump(int size){
+		for (int i = 0; i < size; i++){
+			cout << ram[i] << endl;
+		}
+	}
+
 
 };
 

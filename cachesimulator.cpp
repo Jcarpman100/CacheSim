@@ -42,7 +42,7 @@ int readFromFile(const char* filename, string* memory){
 	ifs.close();
 	return end - 1;
 }
-
+/*
 void memView(string* memory, int size){
 	cout << "memory_size:" << dec << size << "\nmemory_content:\nAddress:Data" << endl;
 	for (int i = 0; i < size; i += 8){
@@ -60,7 +60,8 @@ void memDump(string* memory, int size){
 		cout << memory[i] << endl;
 	}
 }
-
+*/
+	
 int main(int argc, const char * argv[]) {
 	
 	cout <<  "*** Welcome to the cache simulator *** \ninitialize the RAM: " << endl;
@@ -103,11 +104,11 @@ int main(int argc, const char * argv[]) {
 		} else if (choice.find("cache-view") != string::npos){
 			//cache.view();
 		} else if (choice.find("memory-view") != string::npos){
-			memView(ram, end);
+			cache.memView(end);
 		} else if (choice.find("cache-dump") != string::npos){
 			//cache.dump();
 		} else if (choice.find("memory-dump") != string::npos){
-			memDump(ram, end);
+			cache.memDump(end);
 		} else if (choice.find("quit") != string::npos){
 		} else {
 			cout << "Invalid Command" << endl;
