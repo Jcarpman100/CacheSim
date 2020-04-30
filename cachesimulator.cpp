@@ -97,7 +97,7 @@ int main(int argc, const char * argv[]) {
 			cin >> address;
 			cin >> data;
 			numaddress = stoi(address, 0, 16);
-			//cache.write(numaddress, data);
+			cache.write(data, numaddress);
 		} else if (choice.find("cache-flush") != string::npos){
 			//cache.flush();
 		} else if (choice.find("cache-view") != string::npos){
