@@ -12,13 +12,13 @@
 #include<cmath>
 
 #ifndef CACHE_H
-#define CACHE_H
-
-
-using namespace std;
-
-class cache{
-    private:
+	#define CACHE_H
+	
+	
+	using namespace std;
+	
+	class cache{
+		private:
 		int cache_size;
 		int block_size;
 		int associativity;
@@ -35,8 +35,8 @@ class cache{
 		int rowSize = 0;
 		string temp_set, temp_tag;
 		string** cach;
-
-    public:
+		
+		public:
 		
 		//Default Constructor, made so that the compiler wouldn't yell at me, should not be used in reality.
 		cache() { 
@@ -78,7 +78,7 @@ class cache{
 						cach[i][j] = "0";
 					}
 				}
-			} else {
+				} else {
 				rowSize = associativity * (3 + block_size);
 				for (int i = 0; i < rows; i++){
 					cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
@@ -90,16 +90,16 @@ class cache{
 		}
 		
         void read(int numaddress){
-		
+			
 			//turn the address to a bitstring
             bitset<8> b(numaddress);
             string bitstring = b.to_string();
             //cout<<bitstring<<endl;
-                
+			
             string tag(bitstring.substr(0, tagBits));
 			if (offsetBits > 0)
-				string index(bitstring.substr(tagBits,tagBits + offsetBits));
-
+			string index(bitstring.substr(tagBits,tagBits + offsetBits));
+			
 			
 			if (setBits > 0) {
 				string set(bitstring.substr(tagBits + offsetBits,tagBits + offsetBits + setBits));
@@ -115,7 +115,7 @@ class cache{
 			tt>>temp_tag;
             //Needs finishing: should return cache hit, eviction line, ram address, data
             //what r the private members/memory structure
-        }
+		}
 		//32 4 2 1 1 1
 		// git add . commit push pull
         void write(string data, int address){
@@ -127,31 +127,31 @@ class cache{
             //cout<<"set: "<<temp_set<<endl;
 			//cout<<"tag: "<<temp_tag<<endl;
 			if (replacement == 1){
-			for(int row = 0; row<rows;row++){
-				for(int col = 2; col < rowSize; col+=3+block_size){
-					if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
-						hit = true;
-						hitrow = row;
-						hitcol = col;
-						break;
+				for(int row = 0; row<rows;row++){
+					for(int col = 2; col < rowSize; col+=3+block_size){
+						if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
+							hit = true;
+							hitrow = row;
+							hitcol = col;
+							break;
+						}
+						hit = false;
 					}
-					hit = false;
+					if(hit==true)break;
 				}
-				if(hit==true)break;
-			}
-			} else if (replacement == 2){
-			for(int row = 0; row<rows;row++){
-				for(int col = 3; col < rowSize; col+=4+block_size){
-					if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
-						hit = true;
-						hitrow = row;
-						hitcol = col;
-						break;
+				} else if (replacement == 2){
+				for(int row = 0; row<rows;row++){
+					for(int col = 3; col < rowSize; col+=4+block_size){
+						if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
+							hit = true;
+							hitrow = row;
+							hitcol = col;
+							break;
+						}
+						hit = false;
 					}
-					hit = false;
+					if(hit==true)break;
 				}
-				if(hit==true)break;
-			}
 			}
 			
 			
@@ -159,22 +159,22 @@ class cache{
 				cout<<"write_hit:yes"<<endl;
 				cout<<"eviction_line:" + cach[hitrow][hitcol+2]<<endl;
 				cach[hitrow][hitcol+2] = data;
-			}else{
+				}else{
 				cout<<"write_hit:no"<<endl;
 				cout<<"eviction_line:0"<<endl;
 			}
 			cout<<"ram_address: 0x" << address <<endl;
 			cout<<"data:"+ data<<endl;
 			
-        }
-
+		}
+		
         void flush(){
 			for(int row=0; row<rows;row++){
 				for(int col=0; col<rowSize; col++){
 					cach[row][col]="0";
 				}
 			}
-        }
+		}
 		
 		
         void view(){
@@ -197,7 +197,7 @@ class cache{
 						cout << endl;
 					}
 				}
-			} else {
+				} else {
 				for (int row = 0; row < rows; row++){
 					for (int col = 0; col < rowSize; col+=(4+block_size)){
 						cout << cach[row][col] << " " << cach[row][col+1] << " " << cach[row][col+3] << " ";
@@ -209,7 +209,7 @@ class cache{
 				}
 			}
 			cout << endl;
-        }
+		}
 		
 		void dump(){
 			if (replacement == 1){
@@ -221,7 +221,7 @@ class cache{
 						cout << endl;
 					}
 				}
-			} else {
+				} else {
 				for (int row = 0; row < rows; row++){
 					for (int col = 0; col < rowSize; col+=(4+block_size)){
 						for (int i = 4; i < (4+block_size); i++) {
@@ -237,22 +237,22 @@ class cache{
 		void memView(int size){
 			cout << "memory_size:" << dec << size << "\nmemory_content:\nAddress:Data" << endl;
 			for (int i = 0; i < size; i += 8){
-			cout << "0x" << setfill('0') << setw(2) << hex << i << ":";
-			string data = "";
-			for (int j = 0; j < 8; j++){
-				data = data + ram[i+j] + " ";
+				cout << "0x" << setfill('0') << setw(2) << hex << i << ":";
+				string data = "";
+				for (int j = 0; j < 8; j++){
+					data = data + ram[i+j] + " ";
+				}
+				cout << data << endl;
 			}
-			cout << data << endl;
-	}
 		}
-	
+		
 		void memDump(int size){
-		for (int i = 0; i < size; i++){
-			cout << ram[i] << endl;
+			for (int i = 0; i < size; i++){
+				cout << ram[i] << endl;
+			}
 		}
-	}
-
-
-};
-
+		
+		
+	};
+	
 #endif
