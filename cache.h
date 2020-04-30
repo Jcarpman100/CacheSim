@@ -122,6 +122,7 @@ class cache{
 			if(hit){
 				cout<<"write_hit:yes"<<endl;
 				cout<<"eviction_line:" + cach[hitrow][hitcol+2]<<endl;
+				cach[hitrow][hitcol+2] = data;
 			}else{
 				cout<<"write_hit:no"<<endl;
 				cout<<"eviction_line:0"<<endl;
