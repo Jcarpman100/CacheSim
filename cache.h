@@ -142,7 +142,9 @@ class cache{
 
         void flush(){
 			for(int row=0; row<(int)pow(2,setBits);row++){
-				delete cach[row];
+				for(int col=0; col<associativity * (2 + block_size); col++){
+					cach[row][col]="0";
+				}
 			}
         }
         void view(){
