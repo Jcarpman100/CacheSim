@@ -10,6 +10,7 @@
 #include <string>
 #include<bits/stdc++.h> 
 #include<cmath>
+#include <experimental/random>
 
 #ifndef CACHE_H
 	#define CACHE_H
@@ -33,6 +34,7 @@
 		int misses = 0;
 		int rows = 0;
 		int rowSize = 0;
+		int flagBits = 0;
 		string temp_set, temp_tag;
 		string** cach;
 		
@@ -66,26 +68,20 @@
 			offsetBits = (int)ceil(log2(block_size));
 			setBits = (int)ceil(log2(cache_size/(block_size*associativity)));
 			tagBits = (8) - (setBits + offsetBits);
-			cout << tagBits << " " << setBits << " " << offsetBits << endl;
 			
 			//initialize the cache depending on settings
 			rows = (int)pow(2,setBits);
 			cach = new string*[rows];
 			if(replacement == 2) {
-				rowSize = associativity * (4 + block_size);
-				for (int i = 0; i < rows; i++){
-					cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
-					for(int j = 0; j < rowSize; j++){
-						cach[i][j] = "0";
-					}
-				}
+				flagBits = 3;
 				} else {
-				rowSize = associativity * (3 + block_size);
-				for (int i = 0; i < rows; i++){
-					cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
-					for(int j = 0; j < rowSize; j++){
-						cach[i][j] = "0";
-					}
+				flagBits = 2;
+			}
+			rowSize = associativity * (flagBits + 1 + block_size);
+			for (int i = 0; i < rows; i++){
+				cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+				for(int j = 0; j < rowSize; j++){
+					cach[i][j] = "0";
 				}
 			}
 		}
@@ -114,6 +110,8 @@
 				stringstream ss;
 				ss<<hex<<stoul(set,nullptr,2);
 				ss>>temp_set;
+			} else {
+				cout<<"set: 0" << endl;
 			}
 			
             cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
@@ -127,33 +125,23 @@
 			int row;
 			if (setBits > 0) {
 				row = stoi(temp_set);
-				cout << row << endl;
-			} else {
+				} else {
 				row=0;
 			}
 			int hitrow, hitcol;
 			bool hit = false;
-			if (replacement == 1){
-					for(int col = 2; col < rowSize; col+=3+block_size){
-						if(temp_tag == cach[row][col] && cach[row][col-2] == "1"){
-							hit = true;
-							hitrow = row;
-							hitcol = col;
-							break;
-						}
-						hit = false;
-					}
-				} else if (replacement == 2){
-					for(int col = 3; col < rowSize; col+=4+block_size){
-						if(temp_tag == cach[row][col] && cach[row][col-3] == "1"){
-							hit = true;
-							hitrow = row;
-							hitcol = col;
-							break;
-						}
-						hit = false;
-					}
+			for(int col = flagBits; col < rowSize; col+=flagBits+1+block_size){
+				if(temp_tag == cach[row][col] && cach[row][col-flagBits] == "1"){
+					hit = true;
+					hitrow = row;
+					hitcol = col;
+					break;
+				}
+				hit = false;
 			}
+			
+			
+			
 			
 			
 			if(hit){
@@ -164,29 +152,39 @@
 				hits++;
 				}else{	
 				cout<<"cache_hit:no"<<endl;
-					if (replacement == 1){
-						if (associativity == 1){
-							cach[row][0] = "1";
-							cach[row][2] = temp_tag;
-							cout<<"eviction_line:" << (row) << endl;
-							cout<<"ram_address:0x" << numaddress << endl;
-							cout<<"Data:0x" << ram[numaddress] << endl;
-							for(int i = 0; i < block_size; i++){
-								cach[row][3+i] = ram[(numaddress - stoi(tempIndex)) + i];
-							}
-						}
-					} else {
-						if (associativity == 1){
-							cach[row][0] = "1";
-							cach[row][3] = temp_tag;
-							cout<<"eviction_line:" << (row) << endl;
-							cout<<"ram_address:0x" << numaddress << endl;
-							cout<<"Data:0x" << ram[numaddress] << endl;
-							for(int i = 0; i < block_size; i++){
-								cach[row][4+i] = ram[(numaddress - stoi(tempIndex)) + i];
-							}
-						}
+				int evicted = evictionLine(row);
+				cach[row][evicted*(flagBits+1+block_size)] = "1";
+				cach[row][evicted*(flagBits+1+block_size) + flagBits] = temp_tag;
+				cout<<"eviction_line:" << (row*associativity + evicted) << endl;
+				cout<<"ram_address:0x" << numaddress << endl;
+				cout<<"Data:0x" << ram[numaddress] << endl;
+				for(int i = 0; i < block_size; i++){
+					cach[row][((evicted*(flagBits+1+block_size)) + flagBits+1+i)] = ram[(numaddress - stoi(tempIndex)) + i];
+				}
+				/*if (replacement == 1){
+					if (associativity == 1){
+					int evicted = evictionLine(row);
+					cach[row][0] = "1";
+					cach[row][flagBits] = temp_tag;
+					cout<<"eviction_line:" << (row) << endl;
+					cout<<"ram_address:0x" << numaddress << endl;
+					cout<<"Data:0x" << ram[numaddress] << endl;
+					for(int i = 0; i < block_size; i++){
+					cach[row][flagBits+1+i] = ram[(numaddress - stoi(tempIndex)) + i];
 					}
+					}
+					} else {
+					if (associativity == 1){
+					cach[row][0] = "1";
+					cach[row][3] = temp_tag;
+					cout<<"eviction_line:" << (row) << endl;
+					cout<<"ram_address:0x" << numaddress << endl;
+					cout<<"Data:0x" << ram[numaddress] << endl;
+					for(int i = 0; i < block_size; i++){
+					cach[row][4+i] = ram[(numaddress - stoi(tempIndex)) + i];
+					}
+					}
+				}*/
 				misses++;
 			}
 		}
@@ -331,7 +329,150 @@
 			ofs.close();
 		}
 		
-		
+		int evictionLine(int set){
+			if (associativity == 1) {
+				return 0;
+				} else if (associativity == 2) {
+				if (cach[set][0] == "0"){
+					if(replacement == 2){
+						cach[set][2] == "1";
+						if (cach[set][flagBits+3+block_size] == "1")
+						cach[set][flagBits+3+block_size] == "2";
+					}
+					return 0;
+					
+					} else if (cach[set][flagBits+1+block_size] == "0"){
+					if(replacement == 2){
+						cach[set][flagBits+3+block_size] == "1";
+						if (cach[set][2] == "1")
+						cach[set][2] == "2";
+					}
+					return 1;
+					} else {
+					
+					if(replacement == 2){
+						
+						if (cach[set][2] == "2"){
+							cach[set][2] == "1";
+							if (cach[set][flagBits+3+block_size] == "1")
+							cach[set][flagBits+3+block_size] == "2";
+							return 0;
+							} else if (cach[set][flagBits+3+block_size] == "2"){
+							cach[set][flagBits+3+block_size] == "1";
+							if (cach[set][2] == "1")
+							cach[set][2] == "2";
+							return 1;
+						}
+						
+						} else {
+						return std::experimental::randint(0,1);
+					}
+				}
+				
+				} else {
+				int lineSize = flagBits+1+block_size;
+				if (cach[set][0*lineSize] == "0"){
+					if(replacement == 2){
+						cach[set][2] = "1";
+						if (stoi(cach[set][lineSize + 2]) > 0)
+						cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
+						if (stoi(cach[set][2*lineSize + 2]) > 0)
+						cach[set][2*lineSize + 2] = to_string(stoi(cach[set][2*lineSize + 2]) + 1);
+						if (stoi(cach[set][3*lineSize + 2]) > 0)
+						cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
+						
+					}
+					return 0;
+					
+					} else if (cach[set][1*lineSize] == "0"){
+					if(replacement == 2){
+						cach[set][(1*lineSize) + 2] = "1";
+						if (stoi(cach[set][2]) > 0)
+						cach[set][2] = to_string(stoi(cach[set][2]) + 1);
+						if (stoi(cach[set][2*lineSize + 2]) > 0)
+						cach[set][2*lineSize + 2] =  to_string(stoi(cach[set][2*lineSize + 2]) + 1);
+						if (stoi(cach[set][3*lineSize + 2]) > 0)
+					cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
+					}
+					return 1;
+					
+					} else if (cach[set][2*lineSize] == "0"){
+					if(replacement == 2){
+						cach[set][(2*lineSize) + 2] = "1";
+						if (stoi(cach[set][lineSize + 2]) > 0)
+						cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
+						if (stoi(cach[set][2]) > 0)
+						cach[set][2] = to_string(stoi(cach[set][2]) + 1);
+						if (stoi(cach[set][3*lineSize + 2]) > 0)
+						cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
+					}
+					return 2;
+					
+					} else if (cach[set][3*lineSize] == "0"){
+					if(replacement == 2){
+						cach[set][(3*lineSize) + 2] = "1";
+						if (stoi(cach[set][lineSize + 2]) > 0)
+						cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
+						if (stoi(cach[set][2*lineSize + 2]) > 0)
+						cach[set][2*lineSize + 2] = to_string(stoi(cach[set][2*lineSize + 2]) + 1);
+						if (stoi(cach[set][2]) > 0)
+						cach[set][2] = to_string(stoi(cach[set][2]) + 1);
+					}
+					return 3;
+					
+					} else {
+					if(replacement == 2){
+						if (cach[set][2] == "4"){
+							cach[set][2] = "1";
+							if (stoi(cach[set][lineSize + 2]) > 0)
+							cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
+							if (stoi(cach[set][2*lineSize + 2]) > 0)
+							cach[set][2*lineSize + 2] = to_string(stoi(cach[set][2*lineSize + 2]) + 1);
+							if (stoi(cach[set][3*lineSize + 2]) > 0)
+							cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
+							return 0;
+							
+							} else if (cach[set][1*lineSize + 2] == "4"){
+							cout << "1" << endl;
+							cach[set][(1*lineSize) + 2] = "1";
+							if (stoi(cach[set][2]) > 0)
+							cach[set][2] = to_string(stoi(cach[set][2]) + 1);
+							if (stoi(cach[set][2*lineSize + 2]) > 0)
+							cach[set][2*lineSize + 2] = to_string(stoi(cach[set][2*lineSize + 2]) + 1);
+							if (stoi(cach[set][3*lineSize + 2]) > 0)
+							cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
+							return 1;
+							
+							} else if (cach[set][2*lineSize + 2] == "4"){
+							cout << "2" << endl;
+							cach[set][(2*lineSize) + 2] = "1";
+							if (stoi(cach[set][lineSize + 2]) > 0)
+							cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
+							if (stoi(cach[set][0*lineSize + 2]) > 0)
+							cach[set][0*lineSize + 2] = to_string(stoi(cach[set][0*lineSize + 2]) + 1);
+							if (stoi(cach[set][3*lineSize + 2]) > 0)
+							cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
+							return 2;
+							
+							} else if (cach[set][3*lineSize + 2] == "4"){
+							cout << "3" << endl;
+							cach[set][(3*lineSize) + 2] = "1";
+							if (stoi(cach[set][lineSize + 2]) > 0)
+							cach[set][lineSize + 2] = to_string(stoi(cach[set][lineSize + 2]) + 1);
+							if (stoi(cach[set][2*lineSize + 2]) > 0)
+							cach[set][2*lineSize + 2] = to_string(stoi(cach[set][2*lineSize + 2]) + 1);
+							if (stoi(cach[set][0*lineSize + 2]) > 0)
+							cach[set][0*lineSize + 2] = to_string(stoi(cach[set][0*lineSize + 2]) + 1);
+							return 3;
+						} else {
+						return 0;
+						}
+						} else {
+						return std::experimental::randint(0,3);
+					}
+				}
+			}
+			}
 	};
 	
-#endif
+#endif	

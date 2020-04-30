@@ -92,7 +92,6 @@ int main(int argc, const char * argv[]) {
 		if (choice.find("cache-read") != string::npos){
 			cin >> address;
 			numaddress = stoi(address, 0, 16);
-			cout << numaddress << endl;
 			cache.read(numaddress);
 		} else if (choice.find("cache-write") != string::npos){
 			cin >> address;
@@ -110,6 +109,7 @@ int main(int argc, const char * argv[]) {
 		} else if (choice.find("memory-dump") != string::npos){
 			cache.memDump(end);
 		} else if (choice.find("quit") != string::npos){
+			break;
 		} else {
 			cout << "Invalid Command" << endl;
 		}
