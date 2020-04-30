@@ -31,6 +31,8 @@ class cache{
 		int offsetBits;
 		int hits = 0; 
 		int misses = 0;
+		int rows = 0;
+		int rowSize = 0;
 		string temp_set, temp_tag;
 		string** cach;
 
@@ -66,14 +68,17 @@ class cache{
 			tagBits = (8) - (setBits + offsetBits);
 			
 			//initialize the cache depending on settings
-			cach = new string*[(int)pow(2,setBits)];
+			rows = (int)pow(2,setBits);
+			cach = new string*[rows];
 			if(replacement == 2) {
-				for (int i = 0; i < (int)pow(2,setBits); i++){
-					cach[i] = new string[associativity * (4 + block_size)]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+				rowSize = associativity * (4 + block_size);
+				for (int i = 0; i < rows; i++){
+					cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
 				}
 			} else {
-				for (int i = 0; i < (int)pow(2,setBits); i++){
-					cach[i] = new string[associativity * (3 + block_size)]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+				rowSize = associativity * (3 + block_size);
+				for (int i = 0; i < rows; i++){
+					cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
 				}
 			}
 		}
@@ -115,8 +120,8 @@ class cache{
 			int hitrow, hitcol;
             cout<<"set: "<<temp_set<<endl;
 			cout<<"tag: "<<temp_tag<<endl;
-			for(int row = 0; row<(int)pow(2,setBits);row++){
-				for(int col = 0; col < associativity * (2 + block_size); col+=2+block_size){
+			for(int row = 0; row<rows;row++){
+				for(int col = 2; col < rowSize; col+=block_size){
 					if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
 						hit = true;
 						hitrow = row;
@@ -141,8 +146,8 @@ class cache{
         }
 
         void flush(){
-			for(int row=0; row<(int)pow(2,setBits);row++){
-				for(int col=0; col<associativity * (2 + block_size); col++){
+			for(int row=0; row<rows;row++){
+				for(int col=0; col<rowSize; col++){
 					cach[row][col]="0";
 				}
 			}
