@@ -99,15 +99,18 @@ class cache{
 			}
 			
             cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
-            stringstream ss;
-			ss<<hex<<stoul(tag,nullptr,2);
-			ss>>temp_tag;
+            stringstream tt;
+			tt<<hex<<stoul(tag,nullptr,2);
+			tt>>temp_tag;
             //Needs finishing: should return cache hit, eviction line, ram address, data
             //what r the private members/memory structure
         }
-
-        void write(int data, int address){
+		//32 4 2 1 1 1
+		// git add . commit push pull
+        void write(string data, int address){
+			cout<<"Reading..."<<endl;
 			this->read(address);
+			cout<<"Done reading: "<<endl;
 			bool hit = false;
 			int hitrow, hitcol;
             cout<<"set: "<<temp_set<<endl;
@@ -127,16 +130,20 @@ class cache{
 			if(hit){
 				cout<<"write_hit:yes"<<endl;
 				cout<<"eviction_line:" + cach[hitrow][hitcol+2]<<endl;
+				cach[hitrow][hitcol+2] = data;
 			}else{
 				cout<<"write_hit:no"<<endl;
 				cout<<"eviction_line:0"<<endl;
 			}
-			cout<<"ram_address:"+address<<endl;
-			cout<<"data:"+data<<endl;
+			cout<<"ram_address: 0x" + address <<endl;
+			cout<<"data:"+ data<<endl;
 			
         }
-        void flush(){
 
+        void flush(){
+			for(int row=0; row<(int)pow(2,setBits);row++){
+				delete cach[row];
+			}
         }
         void view(){
 
