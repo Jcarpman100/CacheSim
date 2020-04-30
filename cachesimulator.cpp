@@ -96,10 +96,11 @@ int main(int argc, const char * argv[]) {
 		} else if (choice.find("cache-write") != string::npos){
 			cin >> address;
 			cin >> data;
+			data = data.substr(2);
 			numaddress = stoi(address, 0, 16);
 			cache.write(data, numaddress);
 		} else if (choice.find("cache-flush") != string::npos){
-			//cache.flush();
+			cache.flush();
 		} else if (choice.find("cache-view") != string::npos){
 			cache.view();
 		} else if (choice.find("memory-view") != string::npos){

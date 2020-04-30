@@ -110,7 +110,96 @@
 				stringstream ss;
 				ss<<hex<<stoul(set,nullptr,2);
 				ss>>temp_set;
-			} else {
+				} else {
+				cout<<"set: 0" << endl;
+			}
+			
+            cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
+            stringstream tt;
+			tt<<hex<<stoul(tag,nullptr,2);
+			tt>>temp_tag;
+			
+			
+			int row;
+			if (setBits > 0) {
+				row = stoi(temp_set);
+				} else {
+				row=0;
+			}
+			int line = 0;
+			int hitrow, hitcol;
+			bool hit = false;
+			for(int col = flagBits; col < rowSize; col+=flagBits+1+block_size){
+				if(temp_tag == cach[row][col] && cach[row][col-flagBits] == "1"){
+					hit = true;
+					hitrow = row;
+					hitcol = col;
+					break;
+				}
+				line++;
+				hit = false;
+			}
+			
+			
+			
+			
+			
+			if(hit){
+				cout<<"cache_hit:yes"<<endl;
+				cout<<"eviction_line:-1" << endl;
+				cout<<"ram_address: -1" << endl;
+				cout<<"data:0x" << cach[row][hitcol + stoi(tempIndex)] << endl; 
+				if (replacement == 2){
+					shuffleUse(row, line);
+				}
+				hits++;
+				}else{	
+				cout<<"cache_hit:no"<<endl;
+				int evicted = evictionLine(row);
+				cout<<"testing" << endl;
+				if(cach[row][evicted*(flagBits+1+block_size) + 1] == "1"){
+					reWriteRam(row, evicted);
+				}
+				cach[row][evicted*(flagBits+1+block_size)] = "1";
+				cach[row][evicted*(flagBits+1+block_size) + flagBits] = temp_tag;
+				cout<<"eviction_line:" << (row*associativity + evicted) << endl;
+				
+				cout<<"ram_address:0x" << numaddress << endl;
+				cout<<"Data:0x" << ram[numaddress] << endl;
+				for(int i = 0; i < block_size; i++){
+					cach[row][((evicted*(flagBits+1+block_size)) + flagBits+1+i)] = ram[(numaddress - stoi(tempIndex)) + i];
+				}
+				misses++;
+			}
+		}
+		//32 4 2 1 1 1
+		// git add . commit push pull
+        void write(string data, int address){
+			
+            //cout<<"set: "<<temp_set<<endl;
+			//turn the address to a bitstring
+            bitset<8> b(address);
+            string bitstring = b.to_string();
+            //cout<<bitstring<<endl;
+			
+            string tag = (bitstring.substr(0, tagBits));
+			string tempIndex;
+			
+			if (offsetBits > 0){
+				string index = (bitstring.substr(tagBits + setBits,offsetBits));
+				stringstream tt;
+				tt<<dec<<stoul(index,nullptr,2);
+				tt>>tempIndex;
+			}
+			
+			
+			if (setBits > 0) {
+				string set = (bitstring.substr(tagBits, setBits));
+				cout<<"set: "<<hex<<stoul(set, nullptr, 2)<<endl;
+				stringstream ss;
+				ss<<hex<<stoul(set,nullptr,2);
+				ss>>temp_set;
+				} else {
 				cout<<"set: 0" << endl;
 			}
 			
@@ -129,6 +218,7 @@
 				row=0;
 			}
 			int hitrow, hitcol;
+			int line = 0;
 			bool hit = false;
 			for(int col = flagBits; col < rowSize; col+=flagBits+1+block_size){
 				if(temp_tag == cach[row][col] && cach[row][col-flagBits] == "1"){
@@ -137,108 +227,57 @@
 					hitcol = col;
 					break;
 				}
+				line++;
 				hit = false;
 			}
 			
-			
-			
-			
-			
-			if(hit){
-				cout<<"cache_hit:yes"<<endl;
-				cout<<"eviction_line:-1" << endl;
-				cout<<"ram_address: -1" << endl;
-				cout<<"data:0x" << cach[row][hitcol + stoi(tempIndex)] << endl; 
-				hits++;
-				}else{	
-				cout<<"cache_hit:no"<<endl;
-				int evicted = evictionLine(row);
-				cach[row][evicted*(flagBits+1+block_size)] = "1";
-				cach[row][evicted*(flagBits+1+block_size) + flagBits] = temp_tag;
-				cout<<"eviction_line:" << (row*associativity + evicted) << endl;
-				cout<<"ram_address:0x" << numaddress << endl;
-				cout<<"Data:0x" << ram[numaddress] << endl;
-				for(int i = 0; i < block_size; i++){
-					cach[row][((evicted*(flagBits+1+block_size)) + flagBits+1+i)] = ram[(numaddress - stoi(tempIndex)) + i];
-				}
-				/*if (replacement == 1){
-					if (associativity == 1){
-					int evicted = evictionLine(row);
-					cach[row][0] = "1";
-					cach[row][flagBits] = temp_tag;
-					cout<<"eviction_line:" << (row) << endl;
-					cout<<"ram_address:0x" << numaddress << endl;
-					cout<<"Data:0x" << ram[numaddress] << endl;
-					for(int i = 0; i < block_size; i++){
-					cach[row][flagBits+1+i] = ram[(numaddress - stoi(tempIndex)) + i];
-					}
-					}
-					} else {
-					if (associativity == 1){
-					cach[row][0] = "1";
-					cach[row][3] = temp_tag;
-					cout<<"eviction_line:" << (row) << endl;
-					cout<<"ram_address:0x" << numaddress << endl;
-					cout<<"Data:0x" << ram[numaddress] << endl;
-					for(int i = 0; i < block_size; i++){
-					cach[row][4+i] = ram[(numaddress - stoi(tempIndex)) + i];
-					}
-					}
-				}*/
-				misses++;
-			}
-		}
-		//32 4 2 1 1 1
-		// git add . commit push pull
-        void write(string data, int address){
-			//cout<<"Reading..."<<endl;
-			this->read(address);
-			//cout<<"Done reading: "<<endl;
-			bool hit = false;
-			int hitrow, hitcol;
-            //cout<<"set: "<<temp_set<<endl;
-			//cout<<"tag: "<<temp_tag<<endl;
-			if (replacement == 1){
-				for(int row = 0; row<rows;row++){
-					for(int col = 2; col < rowSize; col+=3+block_size){
-						if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
-							hit = true;
-							hitrow = row;
-							hitcol = col;
-							break;
-						}
-						hit = false;
-					}
-					if(hit==true)break;
-				}
-				} else if (replacement == 2){
-				for(int row = 0; row<rows;row++){
-					for(int col = 3; col < rowSize; col+=4+block_size){
-						if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
-							hit = true;
-							hitrow = row;
-							hitcol = col;
-							break;
-						}
-						hit = false;
-					}
-					if(hit==true)break;
-				}
-			}
-			
-			
+			int dirtyBit = 0;
 			if(hit){
 				cout<<"write_hit:yes"<<endl;
-				cout<<"eviction_line:" + cach[hitrow][hitcol+2]<<endl;
+				cout<<"eviction_line:-1"<<endl;
+				cout<<"ram_address:-1" <<endl;
+				if (replacement == 2){
+					shuffleUse(row, line);
+				}
 				hits++;
-				cach[hitrow][hitcol+2] = data;
+				cach[hitrow][hitcol+stoi(tempIndex)+1] = data;
+				if (write_hit == 1){
+					ram[address] = data;
+					} else {
+					cach[hitrow][(hitcol-flagBits)+1] = "1";
+					dirtyBit = 1;
+				}
 				}else{
+				
 				cout<<"write_hit:no"<<endl;
-				cout<<"eviction_line:0"<<endl;
+				if (write_miss == 2) {
+					cout<<"ram_address: 0x" << address <<endl;
+					ram[address] = data;
+					} else {
+					int evicted = evictionLine(row);
+					if(cach[row][evicted*(flagBits+1+block_size) + 1] == "1"){
+						reWriteRam(row, evicted);
+					}
+					cach[row][evicted*(flagBits+1+block_size)] = "1";
+					cach[row][evicted*(flagBits+1+block_size) + flagBits] = temp_tag;
+					cout<<"eviction_line:" << (row*associativity + evicted) << endl;
+					cout<<"ram_address:0x" << address << endl;
+					for(int i = 0; i < block_size; i++){
+						cach[row][((evicted*(flagBits+1+block_size)) + flagBits+1+i)] = ram[(address - stoi(tempIndex)) + i];
+					}
+					cach[row][((evicted*(flagBits+1+block_size)) + flagBits+stoi(tempIndex)+1)] = data;
+					if (write_hit == 1){
+						ram[address] = data;
+						} else {
+						cach[row][(evicted*(flagBits+1+block_size))+1] = "1";
+						dirtyBit = 1;
+					}
+				}
 				misses++;
 			}
-			cout<<"ram_address: 0x" << address <<endl;
+			
 			cout<<"data:"+ data<<endl;
+			cout<<"dirty_bit:" << dirtyBit << endl;
 			
 		}
 		
@@ -255,9 +294,21 @@
 			cout << "cache_size: " << cache_size << endl;
 			cout << "block_size: " << block_size << endl;
 			cout << "associativity: " << associativity << endl;
-			cout << "replacement_policy: " << replacement << endl;
-			cout << "write_hit_policy: " << write_hit << endl;
-			cout << "write_miss_policy: " << write_miss << endl;
+			if (replacement == 1){
+				cout << "replacement_policy:random_replacement" << endl;
+				} else {
+				cout << "replacement_policy:least_recently_used" << endl;
+			}
+			if (write_hit == 1){
+				cout << "write_hit_policy:write_through" << endl;
+				} else {
+				cout << "write_hit_policy:write_back"<< endl;
+			}
+			if (write_miss == 1){
+				cout << "write_miss_policy:write_allocate" << endl;
+				} else {
+				cout << "write_miss_policy:no_write_allocate" << endl;
+			}
 			cout << "number_of_cache_hits: " << hits << endl;
 			cout << "number_of_cache_misses: " << misses << endl;
 			cout << "cache_content:" << endl;
@@ -279,15 +330,15 @@
 							cout << cach[row][col+i] << " ";
 						}
 						cout << endl;
+						}
 					}
 				}
+				cout << endl;
 			}
-			cout << endl;
-		}
-		
-		void dump(){
-			ofstream ofs("cache.txt", ios::trunc);
-			if (replacement == 1){
+			
+			void dump(){
+				ofstream ofs("cache.txt", ios::trunc);
+				if (replacement == 1){
 				for (int row = 0; row < rows; row++){
 					for (int col = 0; col < rowSize; col+=(3+block_size)){
 						for (int i = 3; i < (3+block_size); i++) {
@@ -335,17 +386,17 @@
 				} else if (associativity == 2) {
 				if (cach[set][0] == "0"){
 					if(replacement == 2){
-						cach[set][2] == "1";
+						cach[set][2] = "1";
 						if (cach[set][flagBits+3+block_size] == "1")
-						cach[set][flagBits+3+block_size] == "2";
+						cach[set][flagBits+3+block_size] = "2";
 					}
 					return 0;
 					
 					} else if (cach[set][flagBits+1+block_size] == "0"){
 					if(replacement == 2){
-						cach[set][flagBits+3+block_size] == "1";
+						cach[set][flagBits+3+block_size] = "1";
 						if (cach[set][2] == "1")
-						cach[set][2] == "2";
+						cach[set][2] = "2";
 					}
 					return 1;
 					} else {
@@ -353,14 +404,14 @@
 					if(replacement == 2){
 						
 						if (cach[set][2] == "2"){
-							cach[set][2] == "1";
+							cach[set][2] = "1";
 							if (cach[set][flagBits+3+block_size] == "1")
-							cach[set][flagBits+3+block_size] == "2";
+							cach[set][flagBits+3+block_size] = "2";
 							return 0;
 							} else if (cach[set][flagBits+3+block_size] == "2"){
-							cach[set][flagBits+3+block_size] == "1";
+							cach[set][flagBits+3+block_size] = "1";
 							if (cach[set][2] == "1")
-							cach[set][2] == "2";
+							cach[set][2] = "2";
 							return 1;
 						}
 						
@@ -392,7 +443,7 @@
 						if (stoi(cach[set][2*lineSize + 2]) > 0)
 						cach[set][2*lineSize + 2] =  to_string(stoi(cach[set][2*lineSize + 2]) + 1);
 						if (stoi(cach[set][3*lineSize + 2]) > 0)
-					cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
+						cach[set][3*lineSize + 2] = to_string(stoi(cach[set][3*lineSize + 2]) + 1);
 					}
 					return 1;
 					
@@ -464,15 +515,48 @@
 							if (stoi(cach[set][0*lineSize + 2]) > 0)
 							cach[set][0*lineSize + 2] = to_string(stoi(cach[set][0*lineSize + 2]) + 1);
 							return 3;
-						} else {
-						return 0;
+							} else {
+							return 0;
 						}
 						} else {
 						return std::experimental::randint(0,3);
 					}
 				}
 			}
+		}
+		
+		void shuffleUse(int set, int line){
+			int use = stoi(cach[set][(line*(flagBits+1+block_size)) + 2]);
+			if (use > 0){
+				cach[set][(line*(flagBits+1+block_size)) + 2] = to_string(use - 1);
+				for (int i = 0; i < associativity ; i++){
+					int temp = stoi(cach[set][(i*(flagBits+1+block_size)) + 2]);
+					if (temp < use && temp > 0) {
+						cach[set][(i*(flagBits+1+block_size)) + 2] = to_string(temp+1);
+					}
+				}
+				cach[set][(line*(flagBits+1+block_size)) + 2] = "1";
 			}
+		}
+		
+		void reWriteRam(int row, int evicted){
+			string evicTag = cach[row][evicted*(flagBits+1+block_size) + flagBits];
+			bitset<8> b(stoi(evicTag));
+			string bitstring = b.to_string();
+			string tags = bitstring.substr(8-tagBits, tagBits);
+			bitset<8> c(row);
+			bitstring = c.to_string();
+			string rowbit = bitstring.substr(8-setBits, setBits);
+			bitset<8> a(0);
+			bitstring = a.to_string();
+			string offsetbit = bitstring.substr(8-offsetBits, offsetBits);
+			string evicaddress = tags + rowbit + offsetbit;
+			int numaddress = stoi(evicaddress, nullptr, 2);
+			for(int i = 0; i < block_size; i++){
+				ram[numaddress + i] = cach[row][((evicted*(flagBits+1+block_size)) + flagBits+1+i)];
+			}
+			cach[row][((evicted*(flagBits+1+block_size)) + 1)] = "0";
+		}
 	};
 	
 #endif	
