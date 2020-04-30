@@ -74,11 +74,17 @@ class cache{
 				rowSize = associativity * (4 + block_size);
 				for (int i = 0; i < rows; i++){
 					cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+					for(int j = 0; j < rowSize; j++){
+						cach[i][j] = "0";
+					}
 				}
 			} else {
 				rowSize = associativity * (3 + block_size);
 				for (int i = 0; i < rows; i++){
 					cach[i] = new string[rowSize]; //initialize the other dimension, each block requires a tag, valid bit, and data 
+					for(int j = 0; j < rowSize; j++){
+						cach[i][j] = "0";
+					}
 				}
 			}
 		}
@@ -88,7 +94,7 @@ class cache{
 			//turn the address to a bitstring
             bitset<8> b(numaddress);
             string bitstring = b.to_string();
-            cout<<bitstring<<endl;
+            //cout<<bitstring<<endl;
                 
             string tag(bitstring.substr(0, tagBits));
 			if (offsetBits > 0)
@@ -113,15 +119,16 @@ class cache{
 		//32 4 2 1 1 1
 		// git add . commit push pull
         void write(string data, int address){
-			cout<<"Reading..."<<endl;
+			//cout<<"Reading..."<<endl;
 			this->read(address);
-			cout<<"Done reading: "<<endl;
+			//cout<<"Done reading: "<<endl;
 			bool hit = false;
 			int hitrow, hitcol;
-            cout<<"set: "<<temp_set<<endl;
-			cout<<"tag: "<<temp_tag<<endl;
+            //cout<<"set: "<<temp_set<<endl;
+			//cout<<"tag: "<<temp_tag<<endl;
+			if (replacement == 1){
 			for(int row = 0; row<rows;row++){
-				for(int col = 2; col < rowSize; col+=block_size){
+				for(int col = 2; col < rowSize; col+=3+block_size){
 					if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
 						hit = true;
 						hitrow = row;
@@ -132,6 +139,22 @@ class cache{
 				}
 				if(hit==true)break;
 			}
+			} else if (replacement == 2){
+			for(int row = 0; row<rows;row++){
+				for(int col = 3; col < rowSize; col+=4+block_size){
+					if(temp_tag == cach[row][col] && cach[row][col+1] == "1"){
+						hit = true;
+						hitrow = row;
+						hitcol = col;
+						break;
+					}
+					hit = false;
+				}
+				if(hit==true)break;
+			}
+			}
+			
+			
 			if(hit){
 				cout<<"write_hit:yes"<<endl;
 				cout<<"eviction_line:" + cach[hitrow][hitcol+2]<<endl;
@@ -140,7 +163,7 @@ class cache{
 				cout<<"write_hit:no"<<endl;
 				cout<<"eviction_line:0"<<endl;
 			}
-			cout<<"ram_address: 0x" + address <<endl;
+			cout<<"ram_address: 0x" << address <<endl;
 			cout<<"data:"+ data<<endl;
 			
         }
@@ -152,9 +175,64 @@ class cache{
 				}
 			}
         }
+		
+		
         void view(){
-
+			cout << "cache_size: " << cache_size << endl;
+			cout << "block_size: " << block_size << endl;
+			cout << "associativity: " << associativity << endl;
+			cout << "replacement_policy: " << replacement << endl;
+			cout << "write_hit_policy: " << write_hit << endl;
+			cout << "write_miss_policy: " << write_miss << endl;
+			cout << "number_of_cache_hits: " << hits << endl;
+			cout << "number_of_cache_misses: " << misses << endl;
+			cout << "cache_content:" << endl;
+			if (replacement == 1){
+				for (int row = 0; row < rows; row++){
+					for (int col = 0; col < rowSize; col+=(3+block_size)){
+						cout << cach[row][col] << " " << cach[row][col+1] << " " << cach[row][col+2] << " ";
+						for (int i = 3; i < (3+block_size); i++) {
+							cout << cach[row][col+i] << " ";
+						}
+						cout << endl;
+					}
+				}
+			} else {
+				for (int row = 0; row < rows; row++){
+					for (int col = 0; col < rowSize; col+=(4+block_size)){
+						cout << cach[row][col] << " " << cach[row][col+1] << " " << cach[row][col+3] << " ";
+						for (int i = 4; i < (4+block_size); i++) {
+							cout << cach[row][col+i] << " ";
+						}
+						cout << endl;
+					}
+				}
+			}
+			cout << endl;
         }
+		
+		void dump(){
+			if (replacement == 1){
+				for (int row = 0; row < rows; row++){
+					for (int col = 0; col < rowSize; col+=(3+block_size)){
+						for (int i = 3; i < (3+block_size); i++) {
+							cout << cach[row][col+i] << " ";
+						}
+						cout << endl;
+					}
+				}
+			} else {
+				for (int row = 0; row < rows; row++){
+					for (int col = 0; col < rowSize; col+=(4+block_size)){
+						for (int i = 4; i < (4+block_size); i++) {
+							cout << cach[row][col+i] << " ";
+						}
+						cout << endl;
+					}
+				}
+			}
+			cout << endl;
+		}
 		
 		void memView(int size){
 			cout << "memory_size:" << dec << size << "\nmemory_content:\nAddress:Data" << endl;

@@ -102,11 +102,11 @@ int main(int argc, const char * argv[]) {
 		} else if (choice.find("cache-flush") != string::npos){
 			//cache.flush();
 		} else if (choice.find("cache-view") != string::npos){
-			//cache.view();
+			cache.view();
 		} else if (choice.find("memory-view") != string::npos){
 			cache.memView(end);
 		} else if (choice.find("cache-dump") != string::npos){
-			//cache.dump();
+			cache.dump();
 		} else if (choice.find("memory-dump") != string::npos){
 			cache.memDump(end);
 		} else if (choice.find("quit") != string::npos){
