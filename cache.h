@@ -80,15 +80,20 @@ class cache{
             string tag(bitstring.substr(0, tagBits));
 			if (offsetBits > 0)
 				string index(bitstring.substr(tagBits,tagBits + offsetBits));
+
 			
 			if (setBits > 0) {
 				string set(bitstring.substr(tagBits + offsetBits,tagBits + offsetBits + setBits));
 				cout<<"set: "<<dec<<stoul(set, nullptr, 2)<<endl;
-				
+				stringstream ss;
+				ss<<hex<<stoul(set,nullptr,2);
+				ss>>temp_set;
 			}
 			
             cout<<"tag: "<<hex<<stoul(tag, nullptr, 2)<<endl;
-            
+            stringstream ss;
+			ss<<hex<<stoul(tag,nullptr,2);
+			ss>>temp_tag;
             //Needs finishing: should return cache hit, eviction line, ram address, data
             //what r the private members/memory structure
         }
